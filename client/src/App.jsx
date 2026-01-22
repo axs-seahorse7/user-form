@@ -16,11 +16,11 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
+
         <Route  element={<ProtectedRoute />} > 
           <Route path="/" element={<Home />} />
           <Route path="/form-builder" element={<FormBuilder />} />
-          <Route path="/form/:id" element={<FormBuilder />} />
+          <Route path="/forms/:id" element={<FormBuilder />} />
           <Route path="/response/:id" element={<Response />} />
         </Route>
       </Routes>

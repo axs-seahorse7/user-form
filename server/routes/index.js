@@ -132,7 +132,7 @@ router.get('/user/forms/:id', async (req, res) => {
     const validUserId = mongoose.Types.ObjectId.isValid(req.params.id)
       ? new mongoose.Types.ObjectId(req.params.id)
       : new mongoose.Types.ObjectId();
-      
+
     const forms =  await FormSchema.find({createdBy: validUserId}).populate("createdBy");
     return res.status(200).json({ message: 'Forms fetched successfully', success:true, data: forms });
   } catch (error) {
@@ -211,18 +211,52 @@ router.post("/responses", async (req, res) => {
 });
 
 
-router.get('/form/responses/:id', async (req, res) => {
+router.get("/form/responses/:id", async (req, res) => {
   try {
-    const validUserId = mongoose.Types.ObjectId.isValid(req.params.id)
-      ? new mongoose.Types.ObjectId(req.params.id)
-      : new mongoose.Types.ObjectId();
-    const submission = await DynamicSubmission.find({submittedBy: validUserId}).populate('formId', 'submittedBy');
-    return res.status(200).json({ message: 'Form responses fetched successfully', success:true, data: submission });
+    const { id } = req.params;
+    
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        message: "Invalid user id",
+        success: false
+      });
+    }
+
+    const userId = new mongoose.Types.ObjectId(id);
+
+    const forms = await FormSchema.find({ createdBy: userId }).select("_id");
+
+    if (!forms.length) {
+      return res.status(404).json({
+        message: "No forms found for this user",
+        success: false
+      });
+    }
+
+    const formIds = forms.map(f => f._id);
+
+    const submissions = await DynamicSubmission.find({
+      formId: { $in: formIds }
+    })
+      .populate("formId", "title createdBy")
+      .populate("submittedBy", "name email");
+
+    return res.status(200).json({
+      message: "Form responses fetched successfully",
+      success: true,
+      data: submissions
+    });
+
   } catch (error) {
-    console.log(error.message);
-    return res.status(500).json({ message: 'Internal Server Error', success:false });
+    console.error(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false
+    });
   }
 });
+
 
 const indexrouter = router;
 export default indexrouter;
