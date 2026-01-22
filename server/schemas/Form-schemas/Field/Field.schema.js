@@ -43,7 +43,7 @@ const FieldSchema = new mongoose.Schema(
       regex: String
     },
 
-    styles: {
+    fieldStyles: {
       fontSize: {
         type: Number,
         default: 14

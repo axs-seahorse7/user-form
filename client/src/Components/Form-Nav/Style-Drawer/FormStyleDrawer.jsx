@@ -68,6 +68,7 @@ function StyleBlock({ title, value = {}, onChange,}) {
                 onChange({ ...value, bold: v })
               }
               checkedChildren="Bold"
+              unCheckedChildren="Bold"
             />
 
             <Switch
@@ -76,6 +77,7 @@ function StyleBlock({ title, value = {}, onChange,}) {
                 onChange({ ...value, italic: v })
               }
               checkedChildren="Italic"
+              unCheckedChildren="Italic"
             />
 
             <Switch
@@ -84,6 +86,7 @@ function StyleBlock({ title, value = {}, onChange,}) {
                 onChange({ ...value, underline: v })
               }
               checkedChildren="Underline"
+              unCheckedChildren="Underline"
             />
           </Space>
 

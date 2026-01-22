@@ -1,165 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Input, Button, Select, Switch, Divider, Space, Typography, message } from "antd";
 import axios from "axios";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { uid } from "uid";
 import Navbar from "../Form-Nav/Navbar/Navbar";
+import { useParams, useSearchParams } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
- 
-
-
-export default function FormBuilder() {
-    const [activeField, setActiveField] = useState(null);
-    const [styles, setStyles] = useState({
-        header: {
-            fontSize: 16,
-            fontFamily: "Inter",
-            bgColor: "#6ba6ff",
-            bold: true,
-            italic: false,
-            underline: false
-        },
-        section: {
-            fontSize: 20,
-            fontFamily: "Inter",
-            bgColor: "#9e9e9e",
-            bold: false,
-            italic: false,
-            underline: false
-        },
-        field: {
-            fontSize: 14,
-            fontFamily: "Arial",
-            bgColor: "#ffffff",
-            bold: false,
-            italic: false,
-            underline: false
-        }
-    });
-        
-    console.log("Styles in FormBuilder:", styles);
-
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    sections: []
-  });
-
-  /* ---------------- SECTIONS ---------------- */
-
-  const createDefaultField = () => ({
-  id: uid("field"),
-  type: "text",
-  label: "Untitled Question",
-  placeholder: "",
-  required: false,
-  options: [],
-  styles: {
-    fontSize: 14,
-    bold: false,
-    italic: false,
-    underline: false,
-    strike: false
-  }
-});
-
-
-  const addSection = () => {
-    setForm((prev) => ({
-      ...prev,
-      sections: [
-        ...prev.sections,
-        {
-          id: uid("section"),
-          title: `New Section ${form.sections.length + 1}`,
-          styles: {
-            headerBgColor: "#f5f7fa",
-            headerTextColor: "#111827",
-            fontSize: 16,
-            fontWeight: "bold"
-          },
-          fields: [createDefaultField()]
-        }
-      ]
-    }));
-  };
-
-  const updateSection = (index, key, value) => {
-    const sections = [...form.sections];
-    sections[index][key] = value;
-    setForm({ ...form, sections });
-  };
-
-  const deleteSection = (index) => {
-    const sections = form.sections.filter((_, i) => i !== index);
-    setForm({ ...form, sections });
-  };
-
-  /* ---------------- FIELDS ---------------- */
-  const hasOptions = (type) => ["dropdown", "radio", "checkbox"].includes(type);
-
-  const addField = (sectionIndex) => {
-    const sections = [...form.sections];
-    sections[sectionIndex].fields.push({
-      id: uid("field"),
-      type: "text",
-      label: "Untitled Question",
-      required: false,
-      options: [],
-      styles: {
-        fontSize: 14,
-        bold: false,
-        italic: false,
-        underline: false,
-        strike: false
-      }
-    });
-    setForm({ ...form, sections });
-  };
-
-  const updateField = (sIdx, fIdx, key, value) => {
-  setForm((prev) => ({
-    ...prev,
-    sections: prev.sections.map((section, si) =>
-      si !== sIdx
-        ? section
-        : {
-            ...section,
-            fields: section.fields.map((field, fi) =>
-              fi !== fIdx
-                ? field
-                : {
-                    ...field,
-                    [key]: value
-                  }
-            )
-          }
-    )
-  }));
-};
-
-
- const deleteField = (sIdx, fIdx) => {
-  setForm((prev) => {
-    const sections = [...prev.sections];
-
-    if (sections[sIdx].fields.length === 1) return prev; // 🚫 block
-
-    sections[sIdx].fields.splice(fIdx, 1);
-    return { ...prev, sections };
-  });
-};
 
 const createOption = () => ({
   id: uid("option"),
   label: ""
 });
-
-console.log("form", form)
-
-
+ 
 function OptionsEditor({ options = [], onChange, visible }) {
   const addOption = (e) => {
     e.stopPropagation();
@@ -216,16 +70,252 @@ function OptionsEditor({ options = [], onChange, visible }) {
 }
 
 
+export default function FormBuilder() {
+   
+    const [activeField, setActiveField] = useState(null);
+     const { id } = useParams();
+     const [searchParams] = useSearchParams();
+     const isEditMode = searchParams.get("edit") === "true" || searchParams.get("edit") === "";
+    const url = import.meta.env.VITE_API_URL;
+    const [styles, setStyles] = useState({
+        header: {
+            fontSize: 20,
+            fontFamily: "Inter",
+            bgColor: "#6ba6ff",
+            bold: true,
+            italic: false,
+            underline: false
+        },
+        section: {
+            fontSize: 18,
+            fontFamily: "Inter",
+            bgColor: "#9e9e9e",
+            bold: false,
+            italic: false,
+            underline: false
+        },
+        field: {
+            fontSize: 16,
+            fontFamily: "Arial",
+            bgColor: "#ffffff",
+            bold: false,
+            italic: false,
+            underline: false
+        }
+    });
+
+
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    sections: [],
+    
+  });
+
+  /* ---------------- SECTIONS ---------------- */
+
+  const createDefaultField = () => ({
+  id: uid("field"),
+  type: "text",
+  label: "Untitled Question",
+  placeholder: "",
+  required: false,
+  options: [],
+  styles: {
+    fontSize: 14,
+    bold: false,
+    italic: false,
+    underline: false,
+    strike: false
+  }
+});
+
+  const addSection = () => {
+    setForm((prev) => ({
+      ...prev,
+      sections: [
+        ...prev.sections,
+        {
+          id: uid("section"),
+          title: `New Section ${form.sections.length + 1}`,
+          fields: [createDefaultField()]
+        }
+      ]
+    }));
+  };
+
+  const updateSection = (index, key, value) => {
+    const sections = [...form.sections];
+    sections[index][key] = value;
+    setForm({ ...form, sections });
+  };
+
+  const deleteSection = (index) => {
+    const sections = form.sections.filter((_, i) => i !== index);
+    setForm({ ...form, sections });
+  };
+
+  /* ---------------- FIELDS ---------------- */
+  const hasOptions = (type) => ["dropdown", "radio", "checkbox"].includes(type);
+
+  const addField = (sectionIndex) => {
+    const sections = [...form.sections];
+    sections[sectionIndex].fields.push({
+      id: uid("field"),
+      type: "text",
+      label: "Untitled Question",
+      required: false,
+      options: [],
+      
+    });
+    setForm({ ...form, sections });
+  };
+
+  const updateField = (sIdx, fIdx, key, value) => {
+    setForm((prev) => {
+      // Clone sections
+      const newSections = [...prev.sections];
+      // Clone the specific section
+      const newSection = { ...newSections[sIdx] };
+      // Clone the specific fields array
+      const newFields = [...newSection.fields];
+      // Update the specific field
+      newFields[fIdx] = { ...newFields[fIdx], [key]: value };
+      
+      newSection.fields = newFields;
+      newSections[sIdx] = newSection;
+
+      return { ...prev, sections: newSections };
+    });
+  };
+
+  const deleteField = (sIdx, fIdx) => {
+    setForm((prev) => {
+      const sections = [...prev.sections];
+
+      if (sections[sIdx].fields.length === 1) return prev; // 🚫 block
+
+      sections[sIdx].fields.splice(fIdx, 1);
+      return { ...prev, sections };
+    });
+  };
+
+
+  console.log("form", form)
   /* ---------------- SAVE ---------------- */
 
   const saveForm = async () => {
+  const payload = {
+    title: form.title,
+    description: form.description,
+
+    //  GLOBAL STYLES
+    formStyle: { ...styles.header },
+    sectionStyles: { ...styles.section },
+    fieldStyles: { ...styles.field },
+
+    //  FORM STRUCTURE
+    sections: form.sections.map((section, sIdx) => ({
+      id: section.id,
+      title: section.title,
+      order: sIdx,
+
+      fields: section.fields.map((field, fIdx) => ({
+        id: field.id,
+        label: field.label,
+        type: field.type,
+        required: field.required,
+        options: field.options || [],
+        order: fIdx
+      }))
+    }))
+  };
+
+  if( isEditMode ){
     try {
-      await axios.post("/api/forms", form);
+      await axios.put(`${import.meta.env.VITE_API_URL}/forms/${id}`, payload);
+      message.success("Form updated successfully");
+    }
+    catch (err) {
+      message.error("Failed to update form");
+    }
+
+  }else{
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/forms`, payload);
       message.success("Form saved successfully");
     } catch (err) {
       message.error("Failed to save form");
     }
+
+  }
+
+};
+
+const hydrateFormFromDB = (dbForm) => {
+  return {
+    form: {
+      title: dbForm.title || "",
+      description: dbForm.description || "",
+      sections: dbForm?.sections?.map((section) => ({
+        id: section._id,
+        title: section.title,
+        fields: section.fields.map((field) => ({
+          id: field._id,
+          type: field.type,
+          label: field.label,
+          placeholder: field.placeholder || "",
+          required: field.required || false,
+          options:
+            field.options?.map((opt, idx) => ({
+              id: uid("opt"),
+              label: opt
+            })) || []
+        }))
+      }))
+    },
+
+    styles: {
+      header: {
+        fontSize: dbForm.headerStyles?.fontSize ?? 20,
+        fontFamily: dbForm.headerStyles?.fontFamily ?? "Inter",
+        bgColor: dbForm.headerStyles?.bgColor ?? "#6ba6ff",
+        bold: dbForm.headerStyles?.bold ?? false,
+        italic: dbForm.headerStyles?.italic ?? false,
+        underline: dbForm.headerStyles?.underline ?? false
+      },
+      section: {
+        fontSize: dbForm.sectionStyles?.fontSize ?? 18,
+        fontFamily: dbForm.sectionStyles?.fontFamily ?? "Inter",
+        bgColor: dbForm.sectionStyles?.bgColor ?? "#9e9e9e",
+        bold: dbForm.sectionStyles?.bold ?? false,
+        italic: dbForm.sectionStyles?.italic ?? false,
+        underline: dbForm.sectionStyles?.underline ?? false
+      },
+      field: {
+        fontSize: dbForm.fieldStyles?.fontSize ?? 16,
+        fontFamily: dbForm.fieldStyles?.fontFamily ?? "Arial",
+        bgColor: dbForm.fieldStyles?.bgColor ?? "#ffffff",
+        bold: dbForm.fieldStyles?.bold ?? false,
+        italic: dbForm.fieldStyles?.italic ?? false,
+        underline: dbForm.fieldStyles?.underline ?? false
+      }
+    }
   };
+};
+
+useEffect(() => {
+  const fetchForm = async () => {
+    const res = await fetch(`${url}/forms/${id}`);
+    const dbForm = await res.json();
+    const { form, styles } = hydrateFormFromDB(dbForm.data);
+    setForm(form);
+    setStyles(styles);
+  };
+
+  fetchForm();
+}, []);
+
 
   /* ---------------- UI ---------------- */
 
@@ -266,9 +356,9 @@ function OptionsEditor({ options = [], onChange, visible }) {
         </Card> 
 
 
-      {form.sections.map((section, sIdx) => (
+      {form?.sections?.map((section, sIdx) => (
         <React.Fragment key={section.id}>
-        <Divider />
+        <Divider > Section </Divider>
         <Card
             
             style={{
@@ -310,12 +400,16 @@ function OptionsEditor({ options = [], onChange, visible }) {
                 />
             </div>
 
+           
           {/* FIELDS */}
-          {section.fields.map((field, fIdx) => (
+          {section?.fields?.map((field, fIdx) => (
             <Card
             key={field.id}
             size="small"
             style={{ marginBottom: 12, ...styles.field }}
+            onFocus={() =>
+            setActiveField({ sectionIndex: sIdx, fieldIndex: fIdx })
+            }
             >
             
             <Space 
@@ -337,11 +431,11 @@ function OptionsEditor({ options = [], onChange, visible }) {
                 />
                 {/* FIELD META */}
                 <Space
-                style={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "space-between"
-                }}
+                    style={{
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "space-between"
+                    }}
                 >
                 <Select
                     value={field.type}
@@ -358,26 +452,15 @@ function OptionsEditor({ options = [], onChange, visible }) {
                 </Select>
 
                 <section className="flex gap-4 items-center">
-                    <Select
-                        value={field.type}
-                        onFocus={() =>
-                            setActiveField({ sectionIndex: sIdx, fieldIndex: fIdx })
-                        }
-                        onChange={(val) =>
-                            updateField(sIdx, fIdx, "type", val)
-                        }
-                        />
-
-                        <Switch
-                        checked={field.required}
-                        onFocus={() =>
-                            setActiveField({ sectionIndex: sIdx, fieldIndex: fIdx })
-                        }
-                        onChange={(val) =>
-                            updateField(sIdx, fIdx, "required", val)
-                        }
-                        />
-
+                    
+                    <Switch
+                    checked={field.required}
+                    onChange={(val) =>
+                    updateField(sIdx, fIdx, "required", val)
+                    }
+                    checkedChildren="Required"
+                    unCheckedChildren="Required"
+                    />
 
                     <Button
                     danger
@@ -387,35 +470,38 @@ function OptionsEditor({ options = [], onChange, visible }) {
                     Remove
                     </Button>
                 </section>
-                </Space>
+                </Space>    
 
                 <OptionsEditor
-                    options={field.options}
-                    onChange={(opts) =>
-                        updateField(sIdx, fIdx, "options", opts)
-                    }
-                    visible={
-                        activeField?.sectionIndex === sIdx &&
-                        activeField?.fieldIndex === fIdx &&
-                        hasOptions(field.type)
-                    }
-                    />
+                options={field.options}
+                onChange={(opts) =>
+                updateField(sIdx, fIdx, "options", opts)
+                }
+                visible={
+                activeField?.sectionIndex === sIdx &&
+                activeField?.fieldIndex === fIdx &&
+                hasOptions(field.type)
+                }
+                />
 
             </Space>
            
             </Card>
 
-          ))}
+        ))}
 
+       
+
+        <div className="flex justify-end">
           <Button
-            type="dashed"
-            primary
-            
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => addField(sIdx)}
+            style={{textAlign:"end"}}
           >
             Add Field
           </Button>
+        </div>
         </Card>
         </React.Fragment>
       ))}

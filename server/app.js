@@ -3,14 +3,25 @@ import cors from "cors";
 import indexrouter from "./routes/index.js";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import  connectDB  from "./DB/db.config/mongoose.config.js";
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 const app = express(); 
+await connectDB();
 
-app.use(cors());
+
+app.use(cookieParser());
 app.use(bodyParser.json());
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", 
+    credentials: true
+  })
+);
+
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 

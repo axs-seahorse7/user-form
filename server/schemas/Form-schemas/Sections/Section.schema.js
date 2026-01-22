@@ -9,12 +9,7 @@ const SectionSchema = new mongoose.Schema(
       required: true
     },
 
-    sectionName: {
-      type: String,
-      required: true
-    },
-
-    styles: {
+    sectionStyles: {
       headerBgColor: {
         type: String,
         default: "#f5f7fa"

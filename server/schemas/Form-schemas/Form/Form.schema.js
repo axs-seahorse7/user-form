@@ -17,7 +17,11 @@ const FormSchema = new mongoose.Schema(
       default: "draft"
     },
 
-    globalStyles: {
+    headerStyles: {
+      headerBgColor: {
+        type: String,
+        default: "#ffffff"
+      },
       fontFamily: {
         type: String,
         default: "Inter"
@@ -25,13 +29,18 @@ const FormSchema = new mongoose.Schema(
       fontSize: {
         type: Number,
         default: 14
-      }
+      },
+      bold: { type: Boolean, default: false},
+      italic: { type: Boolean, default: false},
+      strike:{ type: Boolean, default: false}
     },
 
     sections: {
       type: [SectionSchema],
       default: []
     },
+
+    path:String,
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
