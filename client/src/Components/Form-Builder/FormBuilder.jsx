@@ -71,12 +71,13 @@ function OptionsEditor({ options = [], onChange, visible }) {
 
 
 export default function FormBuilder() {
-   
+    const user = JSON.parse(localStorage.getItem("user"));
     const [activeField, setActiveField] = useState(null);
-     const { id } = useParams();
-     const [searchParams] = useSearchParams();
-     const isEditMode = searchParams.get("edit") === "true" || searchParams.get("edit") === "";
+    const { id } = useParams();
+    const [searchParams] = useSearchParams();
+    const isEditMode = searchParams.get("edit") === "true" || searchParams.get("edit") === "";
     const url = import.meta.env.VITE_API_URL;
+
     const [styles, setStyles] = useState({
         header: {
             fontSize: 20,
@@ -208,6 +209,7 @@ export default function FormBuilder() {
   const payload = {
     title: form.title,
     description: form.description,
+    submittedBy: user?.id,
 
     //  GLOBAL STYLES
     formStyle: { ...styles.header },

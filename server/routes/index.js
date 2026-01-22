@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../schemas/User-Schemas/user.schema.js';
 import isAuthenticated from '../Auth/isAuthenicated.js';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -126,9 +127,13 @@ router.post('/forms', async (req, res) => {
   }
 })
 
-router.get('/forms', async (req, res) => {
+router.get('/user/forms/:id', async (req, res) => {
   try {
-    const forms =  await FormSchema.find();
+    const validUserId = mongoose.Types.ObjectId.isValid(req.params.id)
+      ? new mongoose.Types.ObjectId(req.params.id)
+      : new mongoose.Types.ObjectId();
+      
+    const forms =  await FormSchema.find({createdBy: validUserId}).populate("createdBy");
     return res.status(200).json({ message: 'Forms fetched successfully', success:true, data: forms });
   } catch (error) {
     console.log(error.message);
@@ -138,7 +143,7 @@ router.get('/forms', async (req, res) => {
 
 router.get('/forms/:id', async (req, res) => {
   try {
-    const form = await FormSchema.findById(req.params.id);
+    const form = await FormSchema.findById(req.params.id).populate("createdBy");
     if (!form) {
       return res.status(404).json({ message: 'Form not found', success:false });
     }
@@ -153,7 +158,7 @@ router.put('/forms/:id', async (req, res) => {
   try {
     validateFormPayload(req.body);
     const formData = normalizeFormPayload(req.body);
-    const updatedForm = await FormSchema.findByIdAndUpdate(req.params.id, formData, { new: true });
+    const updatedForm = await FormSchema.findByIdAndUpdate(req.params.id, formData, { new: true }).populate("createdBy");
     if (!updatedForm) {
       return res.status(404).json({ message: 'Form not found', success:false });
     }
@@ -167,6 +172,9 @@ router.put('/forms/:id', async (req, res) => {
 router.post("/responses", async (req, res) => {
   try {
     const { formId, submittedBy, responses, meta } = req.body;
+    const validUserId = mongoose.Types.ObjectId.isValid(submittedBy)
+      ? new mongoose.Types.ObjectId(submittedBy)
+      : new mongoose.Types.ObjectId();
 
     if (!formId || !Array.isArray(responses)) {
       return res.status(400).json({
@@ -177,7 +185,7 @@ router.post("/responses", async (req, res) => {
 
     const newSubmission = new DynamicSubmission({
       formId,
-      submittedBy,
+      submittedBy: validUserId,
       responses: responses.map(r => ({
         fieldId: r.fieldId,
         label: r.label,
@@ -205,7 +213,10 @@ router.post("/responses", async (req, res) => {
 
 router.get('/form/responses/:id', async (req, res) => {
   try {
-    const submission = await DynamicSubmission.find({submittedBy: req.params.id}).populate('formId', 'submittedBy');
+    const validUserId = mongoose.Types.ObjectId.isValid(req.params.id)
+      ? new mongoose.Types.ObjectId(req.params.id)
+      : new mongoose.Types.ObjectId();
+    const submission = await DynamicSubmission.find({submittedBy: validUserId}).populate('formId', 'submittedBy');
     return res.status(200).json({ message: 'Form responses fetched successfully', success:true, data: submission });
   } catch (error) {
     console.log(error.message);

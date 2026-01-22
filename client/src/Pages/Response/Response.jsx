@@ -24,6 +24,7 @@ const Response = () => {
     
   return (
     <div>
+
         <ResponseForm form={Form} />
     </div>
   )

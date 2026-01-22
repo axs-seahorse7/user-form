@@ -9,6 +9,9 @@ import { useEffect } from "react";
 const { TabPane } = Tabs;
 
 export default function Home() {
+  const url = import.meta.env.VITE_API_URL;
+
+ 
 
   
 

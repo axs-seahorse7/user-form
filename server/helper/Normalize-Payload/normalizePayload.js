@@ -1,8 +1,17 @@
+import mongoose from "mongoose";
+
 export const normalizeFormPayload = (payload) => {
+
+  const submittedBy = mongoose.Types.ObjectId.isValid(payload.submittedBy)
+  ? new mongoose.Types.ObjectId(payload.submittedBy)
+  : new mongoose.Types.ObjectId(); 
+
+
   return {
     title: payload.title,
     description: payload.description || "",
 
+    createdBy: submittedBy,
     headerStyles: payload.formStyle || {},
 
     sections: payload.sections.map((section) => ({

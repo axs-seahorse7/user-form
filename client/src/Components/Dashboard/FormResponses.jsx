@@ -2,6 +2,7 @@ import { Table, Tag } from "antd";
 import { useEffect } from "react";
 import { useState } from "react";
 import axios from "axios";
+import {Card} from "antd";
 
 export default function FormResponses() {
   const url = import.meta.env.VITE_API_URL;
@@ -32,7 +33,7 @@ export default function FormResponses() {
     : item.value
 }));
 
-console.log("Data source for table:", dataSource);
+// console.log("Data source for table:", dataSource);
 
 const columns = [
   {
@@ -50,11 +51,23 @@ const columns = [
 
 
   return (
+    <section>
+      {responses.map((resp, idx) => (
+        <Card key={idx} title={`Response ${idx + 1}`} style={{ marginBottom: '20px' }}>
+          <div>
+            {resp.responses.map((r, rIdx) => (
+              <p key={rIdx}><strong>{r.label}:</strong> {Array.isArray(r.value) ? r.value.join(", ") : r.value}</p>
+            ))}
+          </div>
+        </Card>
+      ))  }
+
       <Table
         rowKey="id"
         dataSource={  dataSource || []}
         pagination={false}
         columns={columns}
       />
+    </section>
   );
 }
